@@ -1,3 +1,6 @@
+// ResultScreen.kt
+// Šis fails attēlo spēles beigu ekrānu ar rezultāta ziņojumu un pogu spēles restartēšanai.
+
 package com.example.towerdefense.ui.theme
 
 import androidx.compose.foundation.layout.*
@@ -15,8 +18,10 @@ fun ResultScreen(resultMessage: String, navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Parāda uzvaras vai zaudējuma ziņu
         Text(text = resultMessage, style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(24.dp))
+        // Poga, kas atgriež uz sākuma ekrānu
         Button(onClick = { navController.navigate("welcome") }) {
             Text(text = "Restart")
         }
