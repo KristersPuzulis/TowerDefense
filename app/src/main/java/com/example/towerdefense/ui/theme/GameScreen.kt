@@ -1,3 +1,6 @@
+// GameScreen.kt
+// Šis fails attēlo galveno spēles ekrānu, kur lietotājs redz spēles laukumu, var izvietot torņus, sekot rezultātam un kontrolēt spēles gaitu.
+
 package com.example.towerdefense.ui.theme
 
 import androidx.compose.foundation.background
@@ -20,6 +23,7 @@ import com.example.towerdefense.R
 import android.media.MediaPlayer
 import androidx.compose.ui.platform.LocalContext
 
+// Datu klase, kas satur viļņa informāciju
 data class Wave(
     val number: Int,
     val enemyCount: Int,
@@ -27,6 +31,7 @@ data class Wave(
     val spawnDelayStep: Float
 )
 
+// Ģenerē viļņa datus atkarībā no kārtas numura
 fun generateWave(number: Int): Wave {
     return Wave(
         number = number,
@@ -38,8 +43,8 @@ fun generateWave(number: Int): Wave {
 
 @Composable
 fun GameScreen(playerName: String, navController: NavController) {
+    // Spēles stāvokļa mainīgie
     val enemies = remember { mutableStateListOf<Enemy>() }
-
     val context = LocalContext.current
 
     val towers = remember {
@@ -56,6 +61,7 @@ fun GameScreen(playerName: String, navController: NavController) {
     var waveNumber by remember { mutableIntStateOf(1) }
     var isFastForward by remember { mutableStateOf(false) }
 
+    // Aprēķina šūnas izmēru atkarībā no ekrāna lieluma
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
@@ -64,6 +70,7 @@ fun GameScreen(playerName: String, navController: NavController) {
     val maxGridHeight = (screenHeight - 160.dp) / GRID_HEIGHT
     val cellSize = minOf(maxGridWidth, maxGridHeight)
 
+    // Ģenerē pretiniekus jaunam vilnim, kad tas sākas
     LaunchedEffect(gameStarted, waveNumber) {
         if (gameStarted && enemies.isEmpty()) {
             val wave = generateWave(waveNumber)
@@ -73,6 +80,7 @@ fun GameScreen(playerName: String, navController: NavController) {
         }
     }
 
+    // Uzsāk spēles loģiku, kad spēle sākas
     LaunchedEffect(gameStarted) {
         if (gameStarted) {
             updateGameLoop(
@@ -107,8 +115,10 @@ fun GameScreen(playerName: String, navController: NavController) {
         }
     }
 
+    // UI izkārtojums
     Column(modifier = Modifier.fillMaxSize()) {
 
+        // Augšējā josla ar rezultātu un pogām
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -132,6 +142,7 @@ fun GameScreen(playerName: String, navController: NavController) {
             }
         }
 
+        // Spēles laukums ar torņiem, zāli, ceļu un pretiniekiem
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -164,6 +175,7 @@ fun GameScreen(playerName: String, navController: NavController) {
                                                 MediaPlayer.create(context, R.raw.upgrade_tower).start()
                                             }
 
+                                        // Ja tukšs zāliens – uzliek torni
                                         } else if (!isPath && money >= 100) {
                                             towers[row][col] = Tower(x = col, y = row).apply { level = 1 }
                                             money -= 100
@@ -189,6 +201,7 @@ fun GameScreen(playerName: String, navController: NavController) {
                 }
             }
 
+            // Zīmē pretiniekus
             enemies
                 .filter { it.spawnDelay <= 0f }
                 .forEachIndexed { index, enemy ->
