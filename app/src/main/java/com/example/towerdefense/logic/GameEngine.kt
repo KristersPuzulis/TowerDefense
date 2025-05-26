@@ -1,3 +1,6 @@
+// GameEngine.kt
+// Šis fails satur galveno spēles ciklu, kurā tiek atjaunināti pretinieku stāvokļi, torņi uzbrūk, un tiek pārvaldīta spēles gaita, viļņu maiņa un beigu scenāriji.
+
 package com.example.towerdefense.logic
 
 import androidx.navigation.NavController
@@ -26,16 +29,17 @@ suspend fun updateGameLoop(
     isFastForward: () -> Boolean,
     context: Context
 ) {
-    val attackCooldown = 500f
+    val attackCooldown = 500f // Laiks starp torņu uzbrukuma cikliem
     var attackTimer = 0f
     var lastTime = System.nanoTime()
 
     while (true) {
+        // Pārbauda vai spēle ir sākusies
         if (!gameStarted()) {
             println(">>> Game not started — exiting loop")
             break
         }
-
+         // Ja spēle ir pauzēta, uz brīdi apstājas un atjauno laika skaitītāju
         if (isPaused()) {
             delay(100L)
             lastTime = System.nanoTime()
@@ -50,8 +54,10 @@ suspend fun updateGameLoop(
         val deltaTime = if (isFastForward()) rawDelta * 2f else rawDelta
         lastTime = now
 
+        // Noņem pretiniekus, kuriem ir beigušies dzīvības
         enemies.removeAll { it.hp <= 0 }
 
+        // Atjaunina katra pretinieka stāvokli
         enemies.forEach { enemy ->
             println(">>> Enemy before: pathIndex=${enemy.pathIndex}, progress=${enemy.progress}, delay=${enemy.spawnDelay}, hp=${enemy.hp}")
             enemy.spawnDelay -= deltaTime
@@ -59,7 +65,7 @@ suspend fun updateGameLoop(
 
             enemy.progress += 0.002f * deltaTime
 
-            // Atjauno koordinātas starp punktiem
+            // Aprēķina pretinieka atrašanās vietu starp diviem punktiem
             val currentIndex = enemy.pathIndex
             val nextIndex = currentIndex + 1
 
@@ -70,12 +76,14 @@ suspend fun updateGameLoop(
                 enemy.y = y1 + (y2 - y1) * enemy.progress
             }
 
+            // Kad progress sasniedz 1.0, pretinieks pārlec uz nākamo punktu
             if (enemy.progress >= 1f) {
                 enemy.progress = 0f
                 enemy.pathIndex++
                 println(">>> Enemy advanced to pathIndex ${enemy.pathIndex}")
                 if (enemy.pathIndex >= GameSettings.path.lastIndex) {
                     println(">>> Enemy reached end — game over")
+                    // Pretinieks sasniedz beigas → spēlētājs zaudē
                     ScoreManager.addScore(playerName, currentScore())
                     navController.navigate("result/You Lose!")
                     return
@@ -83,6 +91,7 @@ suspend fun updateGameLoop(
             }
         }
 
+        // Laiks torņiem uzbrukt, ja cooldown ir pagājis
         attackTimer += deltaTime
         if (attackTimer >= attackCooldown) {
             attackTimer = 0f
@@ -93,6 +102,7 @@ suspend fun updateGameLoop(
                 for (col in towers[row].indices) {
                     val tower = towers[row][col] ?: continue
 
+                    // Atrod tuvāko pretinieku, kas vēl nav trāpīts šajā ciklā
                     val target = enemies
                         .filter { it.spawnDelay <= 0f && it !in hitEnemies }
                         .minByOrNull {
@@ -107,6 +117,7 @@ suspend fun updateGameLoop(
                         val distance = sqrt(dx * dx + dy * dy)
 
                         if (distance <= 1.5f) {
+                            // Pretiniekam atņemas hp
                             val damage = 20 * tower.level
                             it.hp -= damage
                             MediaPlayer.create(context, R.raw.shoot).start()
@@ -123,19 +134,22 @@ suspend fun updateGameLoop(
             }
         }
 
+        // Ja pienācis laiks nākamajam vilnim
         if (checkSpawnNewWave()) {
             if (currentWave() >= 10) {
                 println(">>> All waves completed — You Win!")
+                // Spēle beidzas ar uzvaru
                 ScoreManager.addScore(playerName, currentScore())
                 navController.navigate("result/You Win!")
                 return
             } else {
                 println(">>> Spawning next wave...")
+                // Ievieto kavēšanos pirms nākamā viļņa
                 delay(2000L)
                 requestNextWave()
             }
         }
-
+        // Cikla aizture, lai spēle netiktu atjaunināta pārāk bieži
         delay(16L)
     }
 }
