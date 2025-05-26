@@ -1,3 +1,6 @@
+// TowerView.kt
+// Šis fails nodrošina torņa attēlošanu spēles laukumā – izmantojot attēlus atkarībā no torņa līmeņa.
+
 package com.example.towerdefense.ui.theme
 
 import androidx.compose.foundation.Image
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.*
 
 @Composable
 fun TowerView(tower: Tower, cellSize: Dp) {
+    // Izvēlas atbilstošo attēlu, pamatojoties uz torņa līmeni
     val imageRes = when (tower.level) {
         1 -> R.drawable.tower_level1
         2 -> R.drawable.tower_level2
@@ -18,6 +22,7 @@ fun TowerView(tower: Tower, cellSize: Dp) {
         else -> R.drawable.tower_level1
     }
 
+    // Attēlo torņa attēlu ar norādīto izmēru
     Image(
         painter = painterResource(id = imageRes),
         contentDescription = "Tower level ${tower.level}",
