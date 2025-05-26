@@ -1,3 +1,6 @@
+// EnemyView.kt
+// Šis fails atbild par viena pretinieka attēlošanu spēles laukumā – ieskaitot tā pozīciju un dzīvības joslu.
+
 package com.example.towerdefense.ui.theme
 
 import androidx.compose.foundation.background
@@ -16,6 +19,7 @@ import kotlin.math.roundToInt
 fun EnemyView(enemy: Enemy, cellSize: Dp, indexOffset: Int = 0) {
     val density = LocalDensity.current
 
+     // Aprēķina pretinieka atrašanās vietu starp diviem trases punktiem
     val start = GameSettings.path.getOrNull(enemy.pathIndex) ?: return
     val end = GameSettings.path.getOrNull(enemy.pathIndex + 1) ?: start
 
@@ -24,6 +28,7 @@ fun EnemyView(enemy: Enemy, cellSize: Dp, indexOffset: Int = 0) {
 
     val pixelOffset = with(density) { 4.dp.toPx() * indexOffset }
 
+    // Aprēķina dzīvības joslas proporciju (0.0 līdz 1.0)
     val hpPercentage = enemy.hp.coerceIn(0, 100) / 100f
     val hpBarWidth = cellSize * 0.8f
     val hpBarHeight = 4.dp
@@ -31,6 +36,7 @@ fun EnemyView(enemy: Enemy, cellSize: Dp, indexOffset: Int = 0) {
     Box(
         modifier = Modifier
             .offset {
+                // Pozicionē pretinieku uz ekrāna
                 IntOffset(
                     x = (with(density) { cellSize.toPx() } * x + pixelOffset).roundToInt(),
                     y = (with(density) { cellSize.toPx() } * y + pixelOffset).roundToInt()
@@ -39,6 +45,7 @@ fun EnemyView(enemy: Enemy, cellSize: Dp, indexOffset: Int = 0) {
             .size(cellSize / 1.6f),
         contentAlignment = Alignment.TopCenter
     ) {
+        // Dzīvības joslas sarkanā daļa
         Box(
             modifier = Modifier
                 .offset(y = (-6).dp)
@@ -47,6 +54,7 @@ fun EnemyView(enemy: Enemy, cellSize: Dp, indexOffset: Int = 0) {
                 .background(HPBarRed)
         )
 
+        // Dzīvības joslas zaļā daļa
         Box(
             modifier = Modifier
                 .offset(y = (-6).dp)
@@ -55,6 +63,7 @@ fun EnemyView(enemy: Enemy, cellSize: Dp, indexOffset: Int = 0) {
                 .background(HPBarGreen)
         )
 
+        // Pretinieka izskats
         Text(
             text = "\uD83D\uDC7E", // 👾
             fontSize = 12.sp
